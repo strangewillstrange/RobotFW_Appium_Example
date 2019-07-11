@@ -1,0 +1,168 @@
+
+*** Settings ***
+Documentation    Test Suite to test the functionality of our iOS application
+Library           AppiumLibrary
+Library           Collections
+Library           OperatingSystem
+#Library           SeleniumLibrary
+Library           Process
+Resource          Keywords/LoginPageKeyword.robot
+Resource          Keywords/UtilitiesKeyword.robot
+Resource          DataFiles/Appium.robot
+Resource          DataFiles/EnterpriseLoginPageData.robot
+Resource          DataFiles/idpLoginPageData.robot
+Resource          ElementLocators/LoginPageLocators.robot
+Resource          ElementLocators/UtilitiesLocators.robot
+Resource          ElementLocators/EnterpriseLoginPageLocators.robot
+Resource          ElementLocators/idpLoginPageLocators.robot
+Resource          ElementLocators/MyCareLocationsPageLocators.robot
+Resource          Keywords/UtilitiesKeyword.robot
+Resource          Keywords/SessionPageKeyword.robot
+Resource          Keywords/EnterprisePageKeyword.robot
+Resource          Keywords/MyCareLocationsPageKeyword.robot
+Resource          Keywords/idpLoginPageKeyword.robot
+
+*** Variables ***
+#${NO_RESET}       false
+${EndpointsCount}
+
+*** Test Cases ***
+Launch Application
+    [Documentation]  Test Case to Verify if the Application Launched Successfully
+    ...
+    ...   Dependencies
+    ...   Keywords -> LoginPageKeyword.robot, UtilitiesKeyword.robot
+    ...   Element Locators -> LoginPageLocators.robot
+    ...   Data Files -> Appium.robot
+
+    Open App Reset   ${iPhone6}
+    Software Update
+    Apple ID Verification
+    ${Result} =   run keyword and return status    Wait Until Page Contains Element    ${Clean_Install_Allow_Button_Element}
+    run keyword if   ${Result}    Click Element    ${Clean_Install_Allow_Button_Element}
+    Software Update
+    Apple ID Verification
+    Apple ID Verification
+    ${Result} =   run keyword and return status    Wait Until Page Contains Element   ${OK_Button_Element}
+    run keyword if   ${Result}    Click Element    ${OK_Button_Element}
+
+    ${Result} =   run keyword and return status    Wait Until Page Contains Element       ${Clean_Install_Accept_Button_Element}
+    run keyword if   ${Result}    Click Element    ${Clean_Install_Accept_Button_Element}
+    Wait Until Page Contains Element     ${InTouchLogoElement}
+    Page Should Contain Element         ${InTouchLogoElement}
+    Page Should Contain Element         ${UsernameInputElement}
+    Page Should Contain Element         ${PasswordInputElement}
+    Page Should Contain Element         ${LoginSubmitButtonElement}
+    Page Should Contain Element         ${RememeberMeCheckboxElement}
+    Check Technical Support Number Displayed
+    [Teardown]    Quit Application
+
+LoginScreen-iPhone
+    [Documentation]  Test case to verify the functionality of the login screen.
+    [Tags]  ReqID=RQ000202    TestCaseID=TC000487
+    ...
+    ...   Dependencies
+    ...   Keywords -> LoginPageKeyword.robot, UtilitiesKeyword.robot, EnterpriseLoginPageKeyword.robot
+    ...   Element Locators -> LoginPageLocators.robot, UtilitiesLocators.robot
+    ...   Data Files -> LoginPageData.robot
+    [Setup]    Open App    ${iPhone6}
+    Verify Elements on FMS Login Page iphone
+    Click On Switch To Enterprise Mode Link
+    Verify Elements on Enterprise Login Page iphone
+    Click On Switch To InTouch Mode Link
+    Login with Valid Credential     ${ValidUsername}    ${ValidPassword}
+    Camera Access Button OK     ${iPhone6}
+    ${Result} =   run keyword and return status    Wait Until Page Contains Element      ${FailedLogin}
+    run keyword if   ${Result}    Click Element    ${FailedLoginButtonOK}
+    Login with Valid Credential     ${idpUsername}   ${idpPassword}
+    ${Result} =   run keyword and return status    Wait Until Page Contains Element   ${OK_Button_Element}  [timeout]=20s
+    run keyword if   ${Result}    Click Element    ${OK_Button_Element}
+    Clicking the Prompts of Clean Install  ${OK_Button_Element}
+    Wait Until Page Contains Element    ${TouchIDNoElement}     30s
+    click element    ${TouchIDNoElement}
+    Verify successful login
+    Sign Out of Application
+    Verify Elements on idP Login Page iphone
+
+UsernamePassword-fmsMode-iPhone
+    [Documentation]  Test case to verify the functionality of "FMS Mode" login on the iPhone, and the ability to create a session.
+    [Tags]  ReqID=RQ000203    TestCaseID=TC000489
+    ...
+    ...   Dependencies
+    ...   Keywords -> LoginPageKeyword.robot, UtilitiesKeyword.robot
+    ...   Element Locators -> LoginPageLocators.robot, UtilitiesLocators.robot
+    ...   Data Files -> LoginPageData.robot
+    [Setup]    Open App    ${iPhone6}
+    click old sign in button
+    Verify Elements on FMS Login Page iphone
+    Login with Valid Credential     ${ValidUsername}    ${ValidPassword}
+    Wait Until Page Contains Element    ${TouchIDNoElement}     30s
+    click element    ${TouchIDNoElement}
+    Verify Successful Login
+    Search Endpoint and Start Session Clean Install iPhone
+    Verify if in session iPhone
+    End Session
+    [Teardown]    Quit Application
+
+UsernamePassword-EnterpriseMode-iPhone
+    [Documentation]  Test case to verify the functionality of "Enterprise Mode" login on the iPhone, and the ability to create a session.
+    [Tags]  ReqID=RQ000203    TestCaseID=TC006832
+    ...
+    ...   Dependencies
+    ...   Keywords -> LoginPageKeyword.robot, EnterprisePageKeyword.robot, UtilitiesKeyword.robot
+    ...   Element Locators -> LoginPageLocators.robot, UtilitiesLocators.robot
+    ...   Data Files -> EnterpriseLoginPageData.robot
+
+    [Setup]    Open App    ${iPhone6}
+    wait until page contains element    ${InTouchEnterpriseButton}
+    Click On Switch To Enterprise Mode Link
+    Domain Verification Enterprise Login
+    Enterprise Login Verification
+    Verify Successful Login
+    Search Endpoint and Start Session iPhone
+    Verify if in session iPhone
+    End Session
+    [Teardown]    Quit Application
+
+UsernamePassword-idpMode-iPhone
+    [Documentation]  Test case to verify the functionality of "idP Mode" login on the iPhone, and the ability to create a session.
+    [Tags]  ReqID=RQ000203    TestCaseID=TC006830
+    ...
+    ...   Dependencies
+    ...   Keywords -> LoginPageKeyword.robot, EnterprisePageKeyword.robot, UtilitiesKeyword.robot
+    ...   Element Locators -> LoginPageLocators.robot, UtilitiesLocators.robot
+    ...   Data Files -> LoginPageData.robot
+
+    [Setup]    Open App    ${iPhone6}
+    wait until page contains element    ${InTouchLoginModeButton}
+    click on switch to intouch health mode link
+    Login with Valid Credential     ${idpUsername}    ${idpPassword}
+    Verify Successful Login
+    quit application
+    Open App    ${iPhone6}
+    Verify Elements on idP Login Page iphone
+    idP Login with Valid Credential     ${idpUsername}     ${idpPassword}
+    Search Endpoint and Start Session iPhone
+    Verify if in session iPhone
+    End Session
+    Sign out of Application
+    wait until page contains element  ${OldSignInButton}
+    click element  ${OldSignInButton}
+    wait until page contains element    ${InTouchLogoElement}
+    Login with Valid Credential     ${ValidUsername}    ${ValidPassword}
+    Verify Successful Login
+    [Teardown]    Quit Application
+
+LiveAgent-iPhone
+    [Documentation]  Test case to verify the functionality of the Live Chat feature.
+    [Tags]  ReqID=RQ000207     TestCaseID=TC000496
+    ...
+    ...   Dependencies
+    ...   Keywords -> LoginPageKeyword.robot, EnterprisePageKeyword.robot, UtilitiesKeyword.robot
+    ...   Element Locators -> LoginPageLocators.robot, EnterprisePageLocators.robot, UtilitiesLocators.robot
+    ...   Data Files ->
+    [Setup]    Open App    ${iPhone6}
+    ${Result} =   run keyword and return status    Wait Until Page Contains Element      ${OldSignInButton}
+    run keyword if   ${Result}    Click Element    ${OldSignInButton}
+    Open Live Agent Chat and verify Functionality - fms
+    [Teardown]    quit application
